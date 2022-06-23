@@ -1,6 +1,7 @@
-import React, {useState} from 'react'
-import axios from 'axios'
-import './UploadForm.css'
+import React, {useState} from 'react';
+import axios from 'axios';
+import './UploadForm.css';
+import {toast} from 'react-toastify';
 
 const UploadForm = () => {
 
@@ -22,9 +23,9 @@ const UploadForm = () => {
         headers: { "Content-Type" : "multipart/form-data"}
       });
       console.log({res});
-      alert("success")
+      toast.success("이미지 업로드 성공!")
     }catch(e){
-      alert("fail!!");
+      toast.error(e.message);
       console.error(e);
     }
   };
