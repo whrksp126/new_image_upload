@@ -20,6 +20,7 @@ const UploadForm = () => {
     fileReader.onload = e => setImgSrc(e.target.result);
   };
 
+  
   const onSubmit = async (e) => {
     e.preventDefault();
     const formData = new FormData();
