@@ -1,3 +1,4 @@
+require("dotenv").config();
 const express = require('express');
 
 // 이미지를 업로드할 때 주로 사용하는 패키지 multer
@@ -6,6 +7,7 @@ const multer = require('multer');
 const { v4: uuid } = require('uuid');
 const mime = require('mime-types');
 const mongoose = require('mongoose');
+const Image = require("./models/Image");
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, "./uploads"),
@@ -30,22 +32,26 @@ const upload = multer({
 const app = express();
 const PORT = 5000;
 
-  // admin
-  // ayiZRwaAwyhsRg0U
-
-mongoose.connect(
-  "mongodb+srv://admin:ayiZRwaAwyhsRg0U@cluster0.bpiyn.mongodb.net/?retryWrites=true&w=majority"
-).then(()=> {
+mongoose.connect(process.env.MONGO_URI).then(()=> {
   console.log("MongoDB Connected.")
   
   // 외부에서 uploads라는 폴더에 접근할 수 있게 해준다.
   app.use("/uploads", express.static("uploads"))
 
   // image라는 key로 저장된 값(파일)을 불러온다.
-  app.post("/upload", upload.single("image"), (req, res) => {
+  app.post("/images", upload.single("image"), async (req, res) => {
     console.log(req.file);
-    res.json(req.file);
+    const image = await new Image({
+      key: req.file.filename, 
+      originalFileName: req.file.originalname
+    }).save();
+    res.json(image);
   });
+
+  app.get("/images", async (req, res)=>{
+    const images = await Image.find();
+    res.json(images);
+  })
 
   app.listen(PORT, () => console.log("express server listening on PORT " + PORT))
   
