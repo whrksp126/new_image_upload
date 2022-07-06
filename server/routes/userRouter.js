@@ -1,7 +1,7 @@
 const { Router } = require("express");
 const userRouter = Router();
 const User = require("../models/User");
-const { hash } = require("bcryptjs");
+const { hash, compare } = require("bcryptjs");
 
 userRouter.post('/register', async (req, res) => {
   try{
@@ -10,17 +10,41 @@ userRouter.post('/register', async (req, res) => {
     if(req.body.username.length < 3) throw new Error("username은 3자 이상으로 해주세요.");
       
     const hashedPassword = await hash(req.body.password, 10);
-    await new User({
+    const user = await new User({
       name: req.body.name,
       username: req.body.username,
       hashedPassword,
+      sessions: [{createdAt: new Date()}]
     }).save();
-    res.json({ message: "user registered" });
+    const session = user.sessions[0];
+    res.json({ 
+      message: "user registered", 
+      sessionId: session._id, 
+      name: user.name,
+    });
 
   }catch(err){
     res.status(400).json({message: err.message});
   }
-  
 });
+
+userRouter.post('/login', async(req, res) => {
+  try{
+    const user = await User.findOne({ username: req.body.username });
+    const isValid = await compare(req.body.password, user.hashedPassword);
+    if(!isValid) throw new Error("입력하신 정보가 올바르지 않습니다.");
+    user.sessions.push({ createAt: new Date() });
+    const session = user.sessions[user.sessions.length-1];
+    await user.save();
+    res.json({
+      message:"user validated", 
+      sessionId: session._id, 
+      name: user.name, 
+    });
+  }catch(err){
+    res.status(400).json({message: err.message});
+  }
+});
+
 
 module.exports = {userRouter};
