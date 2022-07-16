@@ -2,6 +2,7 @@ const { Router } = require("express");
 const userRouter = Router();
 const User = require("../models/User");
 const { hash, compare } = require("bcryptjs");
+const mongoose = require("mongoose");
 
 userRouter.post('/register', async (req, res) => {
   try{
@@ -28,7 +29,7 @@ userRouter.post('/register', async (req, res) => {
   }
 });
 
-userRouter.post('/login', async(req, res) => {
+userRouter.patch('/login', async(req, res) => {
   try{
     const user = await User.findOne({ username: req.body.username });
     const isValid = await compare(req.body.password, user.hashedPassword);
@@ -46,5 +47,26 @@ userRouter.post('/login', async(req, res) => {
   }
 });
 
+userRouter.patch("/logout", async(req,res) => {
+  try{
+    const { sessionid } = req.headers;
+    if(!mongoose.isValidObjectId(sessionid)) throw new Error("invalid sessionid")
+    // 세션이 올바른 형식인지 확인 시작
+    const user = await User.findOne({ "sessions._id": sessionid });
+    if(!user) throw new Error("invalid session");
+    // 세션이 올바른 형식인지 확인 끝
+    
+    // 몽고디비 쿼리를 사용하여 로그아웃 시작
+    await User.updateOne(
+      {_id: user.id},
+      { $pull: {sessions: { _id: sessionid}}}
+    );
+    // 몽고디비 쿼리를 사용하여 로그아웃 끝
+
+    res.json({message:"user is logged out."});
+  }catch(err){
+    res.status(400).json({message: err.message});
+  }
+})
 
 module.exports = {userRouter};

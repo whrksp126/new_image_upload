@@ -8,8 +8,10 @@ const UserSchema = new mongoose.Schema({
       createdAt: { type: Date, required: true },
     },
   ]
-},{
-  timestamps: true,
-});
+  },
+  {
+    timestamps: true,
+  }
+);
 
 module.exports = mongoose.model("user", UserSchema);
