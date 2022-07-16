@@ -6,9 +6,10 @@ const mongoose = require("mongoose");
 
 userRouter.post('/register', async (req, res) => {
   try{
-
-    if(req.body.password.length < 6) throw new Error("비밀번호를 6자 이상으로 해주세요.");
-    if(req.body.username.length < 3) throw new Error("username은 3자 이상으로 해주세요.");
+    if(req.body.password.length < 6) 
+      throw new Error("비밀번호를 6자 이상으로 해주세요.");
+    if(req.body.username.length < 3) 
+      throw new Error("username은 3자 이상으로 해주세요.");
       
     const hashedPassword = await hash(req.body.password, 10);
     const user = await new User({
