@@ -47,22 +47,17 @@ userRouter.patch('/login', async(req, res) => {
   }
 });
 
-userRouter.patch("/logout", async(req,res) => {
+userRouter.patch("/logout", async(req, res) => {
   try{
-    const { sessionid } = req.headers;
-    if(!mongoose.isValidObjectId(sessionid)) throw new Error("invalid sessionid")
-    // 세션이 올바른 형식인지 확인 시작
-    const user = await User.findOne({ "sessions._id": sessionid });
-    if(!user) throw new Error("invalid session");
-    // 세션이 올바른 형식인지 확인 끝
-    
+    if(!req.user) throw new Error("invalid session");
+    // 세션이 유효한지 확인 끝 
+
     // 몽고디비 쿼리를 사용하여 로그아웃 시작
     await User.updateOne(
-      {_id: user.id},
-      { $pull: {sessions: { _id: sessionid}}}
+      {_id: req.user.id},
+      { $pull: {sessions: { _id: req.headers.sessionid}}}
     );
     // 몽고디비 쿼리를 사용하여 로그아웃 끝
-
     res.json({message:"user is logged out."});
   }catch(err){
     res.status(400).json({message: err.message});

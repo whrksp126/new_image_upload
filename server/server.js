@@ -5,6 +5,7 @@ const { imageRouter } = require("./routes/imageRouter");
 const { userRouter } = require('./routes/userRouter');
 const app = express();
 const { MONGO_URI, PORT } = process.env;
+const {authenticate} = require('./middleware/authentication')
 
 mongoose.connect(MONGO_URI).then(()=> {
   console.log("MongoDB Connected.");
@@ -12,6 +13,7 @@ mongoose.connect(MONGO_URI).then(()=> {
   // 외부에서 uploads라는 폴더에 접근할 수 있게 해준다.
   app.use("/uploads", express.static("uploads"));
   app.use(express.json());
+  app.use(authenticate);
   app.use("/images", imageRouter);
   app.use("/users", userRouter);
   app.listen(PORT, () => 
