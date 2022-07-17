@@ -35,7 +35,7 @@ userRouter.patch('/login', async(req, res) => {
     const user = await User.findOne({ username: req.body.username });
     const isValid = await compare(req.body.password, user.hashedPassword);
     if(!isValid) throw new Error("입력하신 정보가 올바르지 않습니다.");
-    user.sessions.push({ createAt: new Date() });
+    user.sessions.push({ createdAt: new Date() });
     const session = user.sessions[user.sessions.length-1];
     await user.save();
     res.json({
