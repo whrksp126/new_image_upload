@@ -6,7 +6,7 @@ const fs = require("fs");
 const {promisify} = require("util");
 const mongoose = require('mongoose');
 
-const fileUnlink = promisify(fs.unlik);
+const fileUnlink = promisify(fs.unlink);
 
 // image라는 key로 저장된 값(파일)을 불러온다.
 imageRouter.post("/", upload.single("image"), async (req, res) => {
@@ -57,14 +57,42 @@ imageRouter.delete("/:imageId", async (req, res)=>{
   }
 })
 
-imageRouter.patch("/:imageId/like", (req, res) => {
+imageRouter.patch("/:imageId/like", async (req, res) => {
   // 유저 권한 확인
   // like 중복 안되도록 확인
+  try{
+    if(!req.user) throw new Error("권한이 없습니다.");
+    if(!mongoose.isValidObjectId(req.params.imageId))
+      throw new Error("올바르지 않은 imageId입니다.")
+    const image = await Image.findOneAndUpdate(
+      {_id: req.params.imageId},
+      {$addToSet: { likes: req.user.id }},
+      { new: true }
+    );
+    res.json(image);
+  }catch(err){
+    console.log(err);
+    res.status(400).json({message:err.message});
+  }
 })
 
-imageRouter.patch("/:imageId/unlike", (req, res) => {
+imageRouter.patch("/:imageId/unlike", async (req, res) => {
   // 유저 권한 확인
   // like 중복 취소 안되도록 확인
+  try{
+    if(!req.user) throw new Error("권한이 없습니다.");
+    if(!mongoose.isValidObjectId(req.params.imageId))
+      throw new Error("올바르지 않은 imageId입니다.")
+    const image = await Image.findOneAndUpdate(
+      {_id: req.params.imageId},
+      {$pull: { likes: req.user.id }},
+      { new: true }
+    );
+    res.json(image);
+  }catch(err){
+    console.log(Err);
+    res.status(400).json({message:err.message});
+  }
 })
 
 module.exports = { imageRouter };
