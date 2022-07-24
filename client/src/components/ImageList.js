@@ -8,7 +8,7 @@ const ImageList = () => {
         key={image.key}
         style={{width: '100%'}} 
         src={`http://localhost:5000/uploads/${image.key}`} 
-        alt="img_list"  
+        alt=""  
       />
     )
 
