@@ -90,7 +90,7 @@ imageRouter.patch("/:imageId/unlike", async (req, res) => {
     );
     res.json(image);
   }catch(err){
-    console.log(Err);
+    console.log(err);
     res.status(400).json({message:err.message});
   }
 })
