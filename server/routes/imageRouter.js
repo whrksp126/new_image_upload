@@ -44,7 +44,7 @@ imageRouter.delete("/:imageId", async (req, res)=>{
   // 2. 데이터베이스에 있는 image 문서를 삭제
   try{
     if(!req.user) throw new Error("권한이 없습니다.");
-    if(mongoose.isValidObjectId(req.params.imageId))
+    if(!mongoose.isValidObjectId(req.params.imageId))
       throw new Error("올바르지 않은 이미지 id입니다.")
 
     const image = await Image.findOneAndDelete({_id: req.params.imageId});
