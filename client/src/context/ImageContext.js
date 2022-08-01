@@ -1,5 +1,5 @@
 import axios from 'axios';
-import React, {createContext, useContext, useEffect, useState} from 'react'
+import React, {createContext, useContext, useEffect, useRef, useState} from 'react'
 import { AuthContext } from './AuthContext';
 
 export const ImageContext = createContext();
@@ -7,22 +7,43 @@ export const ImageContext = createContext();
 export const ImageProvider = (prop) => {
   const [images, setImages] = useState([]);
   const [myImages, setMyImages] = useState([]);
-  const [isPublic, setIsPublic] = useState(true);
+  const [isPublic, setIsPublic] = useState(false);
+  const [imageUrl, setImageUrl] = useState("/images");
+  const [imageLoading, setImageLoading] = useState(false);
+  const [imageError, setImageError] = useState(false);
   const [me] = useContext(AuthContext);
+  const pastImageUrlRef = useRef();
   useEffect(()=> {
+    if(pastImageUrlRef.current === imageUrl) return;
+    setImageLoading(true);
     axios
-    .get("/images")
-    .then((result) => setImages(result.data))
-    .catch((err) => console.error(err))
-  },[])
+    .get(imageUrl)
+    .then((result) => 
+      isPublic 
+        ? setImages((prevData) => [...prevData, ...result.data])
+        : setMyImages((prevData) => [...prevData, ...result.data])
+    )
+    .catch((err) => {
+      console.error(err);
+      setImageError(err);
+    })
+    .finally(()=>{
+      setImageLoading(false)
+      pastImageUrlRef.current = imageUrl;
+    }
+    );
+  },[imageUrl, isPublic]);
 
   useEffect(() => {
     if(me){  
       setTimeout(() =>{
         axios
           .get("/users/me/images")
-          .then((result) => {setMyImages(result.data)})
-          .catch((err)=>{console.log(err)});
+          .then((result) => setMyImages(result.data))
+          .catch((err)=>{
+            console.error(err);
+            setImageError(err);
+          });
       }, 0);
     }else{
       setMyImages([]);
@@ -33,12 +54,14 @@ export const ImageProvider = (prop) => {
   return (
     <ImageContext.Provider 
       value={{ 
-        images, 
-        setImages, 
-        myImages, 
-        setMyImages, 
+        images : isPublic ? images : myImages,
+        setImages,
+        setMyImages,
         isPublic, 
-        setIsPublic 
+        setIsPublic,
+        setImageUrl,
+        imageLoading,
+        imageError,
       }}
     >
       {prop.children}
