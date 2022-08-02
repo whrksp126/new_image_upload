@@ -5,9 +5,34 @@ const Image = require("../models/Image");
 const fs = require("fs");
 const {promisify} = require("util");
 const mongoose = require('mongoose');
-const { s3 } = require('../aws');
+const { s3, getSignedUrl } = require('../aws');
+const {v4: uuid} = require('uuid');
+const mime = require('mime-types');
 
-const fileUnlink = promisify(fs.unlink);
+// const fileUnlink = promisify(fs.unlink);
+
+imageRouter.post("/presigned", async (req, res) => {
+  try{
+    if(!req.user) throw new Error("권한이 없습니다.");
+    const { contentTypes } = req.body;
+    if(!Array.isArray(contentTypes)) throw new Error("invalid contentTypes");
+
+    const presignedData = await Promise.all(
+      contentTypes.map( async (contentType) => {
+        const imageKey = `${uuid()}.${mime.extension(contentType)}`;
+        const key = `raw/${imageKey}`;
+        const presigned = await getSignedUrl({ key });
+        return { imageKey, presigned };
+      })
+    );
+
+    res.json(presignedData);
+    
+  }catch(err){
+    console.log(err);
+    res.status(400).json({message: err.message});
+  }
+})
 
 // image라는 key로 저장된 값(파일)을 불러온다.
 imageRouter.post("/", upload.array("image", 5), async (req, res) => {

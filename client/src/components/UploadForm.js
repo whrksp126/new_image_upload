@@ -34,35 +34,67 @@ const UploadForm = () => {
     setPreviews(imagePreviews);
   };
 
-  const onSubmit = async (e) => {
+  const onSubmitV2 = async(e) => {
     e.preventDefault();
-    const formData = new FormData();
-    for(let file of files) formData.append("image", file);
-    formData.append("public", isPublic);
     try{
-      const res = await axios.post("/images", formData, {
-        headers: { "Content-Type" : "multipart/form-data"},
-        onUploadProgress: (e) => {
-          setPercent(Math.round((100 * e.loaded) / e.total))
-        },
-      });
-      if(isPublic) setImages((prevData)=>[ ...res.data, ...prevData]);
-      setMyImages((prevData)=>[ ...res.data, ...prevData]);
-      toast.success("이미지 업로드 성공!")
+      const presignedData = await axios.post("/images/presigned", {
+        contentTypes: [...files].map(file => file.type)
+      })
+
+      const result = await Promise.all(
+        [...files].map((file, index) => {
+          const {presigned} = presignedData.data[index];
+          const formData = new FormData();
+          for(const key in presigned.fields){
+            formData.append(key, presigned.fields[key]);
+          };
+          formData.append("Content-Type", file.type)
+          formData.append("file", file);
+          return axios.post(presigned.url, formData);
+        })
+      );
+      console.log({result})
+      toast.success("이미지 업로드 성공!!!");
       setTimeout(() => {
         setPercent(0);
         setPreviews([]);
-        inputRef.current.value = null;
-      }, 3000)
+      },3000);
     }catch(err){
-      toast.error(err.response.message);
+      console.error(err);
+      toast.error(err.response.data.message);
       setPercent(0);
       setPreviews([]);
-      console.error(err);
-      inputRef.current.value = null;
-
     }
-  };
+  }
+
+  // const onSubmit = async (e) => {
+  //   e.preventDefault();
+  //   const formData = new FormData();
+  //   for(let file of files) formData.append("image", file);
+  //   formData.append("public", isPublic);
+  //   try{
+  //     const res = await axios.post("/images", formData, {
+  //       headers: { "Content-Type" : "multipart/form-data"},
+  //       onUploadProgress: (e) => {
+  //         setPercent(Math.round((100 * e.loaded) / e.total))
+  //       },
+  //     });
+  //     if(isPublic) setImages((prevData)=>[ ...res.data, ...prevData]);
+  //     setMyImages((prevData)=>[ ...res.data, ...prevData]);
+  //     toast.success("이미지 업로드 성공!")
+  //     setTimeout(() => {
+  //       setPercent(0);
+  //       setPreviews([]);
+  //       inputRef.current.value = null;
+  //     }, 3000)
+  //   }catch(err){
+  //     toast.error(err.response.message);
+  //     setPercent(0);
+  //     setPreviews([]);
+  //     console.error(err);
+  //     inputRef.current.value = null;
+  //   }
+  // };
 
   const previewImages = previews.map((preview, index) => (
     <img 
@@ -83,7 +115,7 @@ const UploadForm = () => {
 
   return (
     <div>
-      <form onSubmit={onSubmit}>
+      <form onSubmit={onSubmitV2}>
         <div style={{display: "flex", flexWrap: "wrap"}}>{previewImages}</div>
         <ProgressBar percent={percent} />
         <div className="file_dropper">
