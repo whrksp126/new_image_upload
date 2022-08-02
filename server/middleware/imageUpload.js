@@ -2,11 +2,21 @@
 const multer = require('multer');
 const { v4: uuid } = require('uuid');
 const mime = require('mime-types');
+const multerS3 = require('multer-s3');
+const { s3 } = require('../aws');
 
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, "./uploads"),
-  // uuid()로 파일명을 고유 id로 저장하고, file.mimetype을 이용해 전송한 파일타입과 동일하게 저장한다.
-  filename: (req, file, cb) => cb(null, `${uuid()}.${mime.extension(file.mimetype)}`)
+// const storage = multer.diskStorage({
+//   destination: (req, file, cb) => cb(null, "./uploads"),
+//   // uuid()로 파일명을 고유 id로 저장하고, file.mimetype을 이용해 전송한 파일타입과 동일하게 저장한다.
+//   filename: (req, file, cb) => cb(null, `${uuid()}.${mime.extension(file.mimetype)}`)
+// })
+
+const storage = multerS3({
+  s3,
+  bucket: "new-image-upload-tutorial",
+  key: (req, file, cb)=>{
+    cb(null, `raw/${uuid()}.${mime.extension(file.mimetype)}`)
+  }
 })
 
 // uplaods라는 폴더에 이미지를 저장하겠다.
