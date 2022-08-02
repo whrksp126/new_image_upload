@@ -1,5 +1,5 @@
 import axios from 'axios';
-import React, { useContext, useEffect, useRef, useState } from 'react'
+import React, { useContext, useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { AuthContext } from '../context/AuthContext';
 import { ImageContext } from '../context/ImageContext';
@@ -14,14 +14,15 @@ const ImagePage = () => {
   const [hasLiked, setHasLiked] = useState(false);
   const [image, setImage] = useState();
   const [error, setError] = useState(false);
-  const imageRef = useRef();
 
   useEffect(() => {
-    imageRef.current = images.find((image) => image._id === imageId);
-  },[images, imageId])
+    const img = images.find((image) => image._id === imageId);
+    if(img) setImage(img);
+  },[images, imageId]);
 
   useEffect(() => {
-    if(imageRef.current) setImage(imageRef.current)// 배열에 이미지가 존재할 때
+    // 배열에 이미지가 존재할 때
+    if(image && image._id === imageId) return;
     else 
       // 배열에 이미지가 존재하지 않으면 무조건 서버 호출한다.
       axios
@@ -35,7 +36,7 @@ const ImagePage = () => {
           toast.error(err.response.data.message);
         });
         
-  },[imageId])
+  },[imageId, image]);
 
   useEffect(()=> {
     if(me && image && image.likes.includes(me.userId)) {
@@ -50,8 +51,10 @@ const ImagePage = () => {
     ...images.filter((image) => image._id !== imageId), 
     image
   ].sort(
-    (a,b) => 
-      new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+    (a,b) => {
+      if(a._id < b._id) return 1;
+      else return -1;
+    }
   )
 
   const onSubmit = async () => {
