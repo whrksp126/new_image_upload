@@ -34,34 +34,65 @@ imageRouter.post("/presigned", async (req, res) => {
   }
 })
 
+
 // image라는 key로 저장된 값(파일)을 불러온다.
-imageRouter.post("/", upload.array("image", 5), async (req, res) => {
+imageRouter.post("/", upload.array("image", 30), async (req, res) => {
   // 유저 정보, public 유무 확인
   try {
     if(!req.user) throw new Error("권한이 없습니다.");
-    const images = await Promise.all(
-      req.files.map( async file => {
-        const image = await new Image({
-          user:{
-            _id: req.user.id,
-            name: req.user.name,
-            username: req.user.username,
-          },
-          public: req.body.public,
-          key: file.key.replace("raw/", ""),
-          originalFileName: file.originalname
-        }).save();
-        return image;
-      })
-    ) 
-    res.json(images);
-
+    const { images, public } = req.body;
+    const imageDocs = await Promise.all(
+      images.map(
+        (image) => 
+          new Image({
+            user:{
+              _id: req.user.id,
+              name: req.user.name,
+              username: req.user.username,
+            },
+            public,
+            key: image.imageKey,
+            originalFileName: image.originalname
+          }).save()
+      )
+    )
+    res.json(imageDocs);
   } catch(err) {
     console.log(err);
     res.status(400).json({ message: err.message });
   }
 
 });
+
+
+// // image라는 key로 저장된 값(파일)을 불러온다.
+// imageRouter.post("/", upload.array("image", 5), async (req, res) => {
+//   // 유저 정보, public 유무 확인
+//   try {
+//     if(!req.user) throw new Error("권한이 없습니다.");
+//     const images = await Promise.all(
+//       req.files.map( async file => {
+//         const image = await new Image({
+//           user:{
+//             _id: req.user.id,
+//             name: req.user.name,
+//             username: req.user.username,
+//           },
+//           public: req.body.public,
+//           key: file.key.replace("raw/", ""),
+//           originalFileName: file.originalname
+//         }).save();
+//         return image;
+//       })
+//     ) 
+//     res.json(images);
+
+//   } catch(err) {
+//     console.log(err);
+//     res.status(400).json({ message: err.message });
+//   }
+
+// });
 
 imageRouter.get("/", async (req, res)=>{
   try{
