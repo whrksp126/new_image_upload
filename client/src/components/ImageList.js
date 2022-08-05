@@ -1,11 +1,12 @@
-import React, { useCallback, useContext, useEffect, useRef } from 'react'
+import React, { useCallback, useContext, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { AuthContext } from '../context/AuthContext'
-import {ImageContext} from '../context/ImageContext'
+import { AuthContext } from '../context/AuthContext';
+import {ImageContext} from '../context/ImageContext';
 import './ImageList.css';
+import Image from './Image';
 
 const ImageList = () => {
-  const {images, isPublic, setIsPublic, imageLoading, imageError, setImageUrl} = useContext(ImageContext)
+  const {images, isPublic, setIsPublic, imageLoading, imageError, setImageUrl} = useContext(ImageContext);
   const [me] = useContext(AuthContext);
   const elementRef = useRef(null);
 
@@ -31,7 +32,7 @@ const ImageList = () => {
       to={`/images/${image._id}`} 
       ref={index + 5  === images.length ? elementRef : undefined}
     >
-      <img alt="" src={`https://new-image-upload-tutorial.s3.ap-northeast-2.amazonaws.com/raw/${image.key}`} />
+      <Image imageUrl={`https://new-image-upload-tutorial.s3.ap-northeast-2.amazonaws.com/w140/${image.key}`} />
     </Link>
   ));
 

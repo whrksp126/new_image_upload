@@ -82,7 +82,7 @@ const ImagePage = () => {
     <div>
       <div>ImagePage</div>
       <img style={{width: '100%'}} alt={imageId} 
-        src={`https://new-image-upload-tutorial.s3.ap-northeast-2.amazonaws.com/raw/${image.key}`} 
+        src={`https://new-image-upload-tutorial.s3.ap-northeast-2.amazonaws.com/w600/${image.key}`} 
       />
       <span>좋아요 {image.likes.length}</span>
       { me && image.user._id === me.userId && (

@@ -12,6 +12,7 @@ const UploadForm = () => {
   const [percent, setPercent] = useState([]);
   const [isPublic, setIsPublic] = useState(true);
   const inputRef = useRef();
+  const [isLoading, setIsLoading] = useState(false);
 
   const imageSelectHandler = async (event) => {
     const imageFiles = event.target.files;
@@ -37,6 +38,7 @@ const UploadForm = () => {
   const onSubmitV2 = async(e) => {
     e.preventDefault();
     try{
+      setIsLoading(true);
       const presignedData = await axios.post("/images/presigned", {
         contentTypes: [...files].map(file => file.type)
       })
@@ -77,13 +79,15 @@ const UploadForm = () => {
       setTimeout(() => {
         setPercent([]);
         setPreviews([]);
+        setIsLoading(false);
       },3000);
     }catch(err){
       console.error(err);
       toast.error(err.response.data.message);
       setPercent([]);
       setPreviews([]);
-    }
+      setIsLoading(false);
+    } 
   }
 
   // const onSubmit = async (e) => {
@@ -158,7 +162,7 @@ const UploadForm = () => {
           onChange={()=>setIsPublic(!isPublic)} 
         />
         <label htmlFor="public-check">비공개</label>
-        <button type="submit" className="btn_input">제출</button>
+        <button disabled={isLoading} type="submit" className="btn_input">제출</button>
       </form>
   </div>
   )
