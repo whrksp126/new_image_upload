@@ -12,7 +12,7 @@ const UploadForm = () => {
   const [percent, setPercent] = useState([]);
   const [isPublic, setIsPublic] = useState(true);
   const inputRef = useRef();
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   const imageSelectHandler = async (event) => {
     const imageFiles = event.target.files;
@@ -33,6 +33,7 @@ const UploadForm = () => {
       })
     );
     setPreviews(imagePreviews);
+    setIsLoading(false);
   };
 
   const onSubmitV2 = async(e) => {
@@ -79,14 +80,14 @@ const UploadForm = () => {
       setTimeout(() => {
         setPercent([]);
         setPreviews([]);
-        setIsLoading(false);
+        setIsLoading(true);
       },3000);
     }catch(err){
       console.error(err);
       toast.error(err.response.data.message);
       setPercent([]);
       setPreviews([]);
-      setIsLoading(false);
+      setIsLoading(true);
     } 
   }
 
@@ -155,14 +156,18 @@ const UploadForm = () => {
           />
         </div>
         {isPublic}
-        <input 
-          type="checkbox" 
-          id="public-check" 
-          value={!isPublic} 
-          onChange={()=>setIsPublic(!isPublic)} 
-        />
-        <label htmlFor="public-check">비공개</label>
-        <button disabled={isLoading} type="submit" className="btn_input">제출</button>
+        
+        {!isLoading && (<>
+          <input 
+            type="checkbox" 
+            id="public-check" 
+            value={!isPublic} 
+            onChange={()=>setIsPublic(!isPublic)} 
+          />
+          <label htmlFor="public-check">비공개</label>
+          <button disabled={isLoading} type="submit" className="btn_input">제출</button>
+          </>
+        )}
       </form>
   </div>
   )
